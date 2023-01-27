@@ -1,5 +1,7 @@
 ocp_num_workers: 2
 ocp_num_extra_workers: 5
+ocp_ai_bmc_protocol: redfish-virtualmedia+http
+
 osp_release_defaults:
   networks: ipv4_dcn
   vmset:
