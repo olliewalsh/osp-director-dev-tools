@@ -53,7 +53,7 @@
       oc apply -n openstack -f "{{ config_generator_yaml_dir }}/openstackconfiggenerator.yaml"
     environment:
       <<: *oc_env
-    when: not osconfiggen_exists|bool
+    when: osconfiggen_exists|bool == false
 
   - name: Refresh config generator image
     shell: |
