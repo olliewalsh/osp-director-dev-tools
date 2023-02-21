@@ -50,4 +50,5 @@ osp_release_defaults:
         - tenant_leaf1
   extrafeatures:
     - hci
-
+    - ssh_firewall_allow_all
+    - BZ2170021

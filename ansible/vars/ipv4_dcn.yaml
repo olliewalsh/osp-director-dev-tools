@@ -4,7 +4,6 @@ osp_networks:
     name: Control
     name_lower: ctlplane
     is_control_plane: true
-    mtu: 1450
     subnets:
     - name: ctlplane
       ipv4:
