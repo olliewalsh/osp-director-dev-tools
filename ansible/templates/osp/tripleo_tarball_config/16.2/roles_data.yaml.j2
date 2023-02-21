@@ -1257,11 +1257,11 @@
     - OS::TripleO::Services::TripleoFirewall
     - OS::TripleO::Services::TripleoPackages
 {% endif %}
-{% if osp.bmset.DComputeHCILeaf1.count|default(0) > 0 %}
+{% if osp.bmset.DistributedComputeHCILeaf1.count|default(0) > 0 %}
 ###############################################################################
-# Role: DComputeHCILeaf1                                                 #
+# Role: DistributedComputeHCILeaf1                                                 #
 ###############################################################################
-- name: DComputeHCILeaf1
+- name: DistributedComputeHCILeaf1
   description: |
     Distributed Compute Node role with Ceph, Cinder volume, and Glance.
   networks:

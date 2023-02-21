@@ -19,13 +19,13 @@
     custom_config_name: dcn1
     config_generator_name: dcn1
     config_generator_roles:
-      - DComputeHCILeaf1
+      - DistributedComputeHCILeaf1
 
 - name: Overcloud node repo setup
   import_playbook: osp_register_overcloud_nodes.yaml
   vars:
     config_generator_roles:
-      - DComputeHCILeaf1
+      - DistributedComputeHCILeaf1
 
 - name: Overcloud deployment
   import_playbook: osp_deployment.yaml
