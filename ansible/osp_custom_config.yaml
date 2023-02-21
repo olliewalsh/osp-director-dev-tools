@@ -59,7 +59,7 @@
 
   - name: Import params from previous deployments
     shell:
-      oc get cm tripleo-exports-{{ import.deploy }} -o json | jq -r '.data."{{ import.src }}"' > {{ ooo_yaml_dir }}/{{ import.dest }}
+      oc get cm -n openstack tripleo-exports-{{ import.deploy }} -o json | jq -r '.data."{{ import.src }}"' > {{ ooo_yaml_dir }}/{{ import.dest }}
     loop: "{{ custom_config_imports|default([]) }}"
     loop_control:
       loop_var: import
