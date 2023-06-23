@@ -99,6 +99,16 @@
       environment:
         <<: *oc_env
 
+    - name: Add local CA cert
+      when: osp.tls_public_endpoints
+      shell: |
+        #!/bin/bash
+        set -e
+        /usr/bin/cp -f /opt/local_CA/cacert.pem {{ tempest_working_dir }}/ca.crt
+        sed -i -e 's!\(\s*cacert:\).*!\1 /var/lib/tempest/.config/openstack/ca.crt!' {{ tempest_working_dir }}/clouds.yaml
+      environment:
+        <<: *oc_env
+
     - name: create /var/lib/tempest/.config/openstack directory and copy clouds.yaml
       shell: |
         #!/bin/bash
