@@ -9,9 +9,10 @@
     set_fact:
       osp: "{{ osp_defaults | combine((osp_release_defaults | default({})), recursive=True) | combine((osp_local | default({})), recursive=True) }}"
 
-  - name: Set controller_role
+  - name: Set role facts
     set_fact:
       controller_role: "{{ osp.vmset|dict2items|selectattr('value.count', '>', 0) | list | items2dict | first }}"
+      compute_roles: "{{ osp.bmset|dict2items|selectattr('value.count', '>', 0) | list | items2dict | list }}"
 
   - name: Upgrade openstackcontrolplane release
     environment: &oc_env
@@ -29,16 +30,17 @@
 
 - name: Disable fencing
   import_playbook: osp_disable_fencing.yaml
+  when: enable_fencing|bool
 
 - name: Ceph upgrade/adopt
   when: '"hci" in osp.extrafeatures'
   import_playbook: osp_ceph_upgrade.yaml
 
-# RHEL8->RHEL9 upgrade
+# RHEL8->RHEL9 "undercloud" upgrade
 - name: Update openstackclient to 17.1 el9
   import_playbook: patch_csv.yaml
 
-# Upgrade Prepare
+# 17.1 OSP containers on RHEL8, switch Compute role to ComputeRhel8
 
 - name: Generate Upgrade custom config
   import_playbook: osp_custom_config.yaml
@@ -46,7 +48,8 @@
     config_generator_name: upgrade
     custom_config_name: upgrade
     custom_config_action: upgrade
-    custom_config_extrafeatures: [ "upgrade" ]
+    custom_config_extrafeatures: [ "upgrade", "disable_compute_service_check", "negative_hypervisor_version_weight" ]
+    custom_config_rhel8_roles: "{{ compute_roles | map('regex_replace', '$', 'Rhel8') | list + [controller_role] }}"
 
 - name: Upgrade Prepare config generate
   import_playbook: config_generator.yaml
@@ -54,8 +57,12 @@
     custom_config_name: upgrade
     config_generator_name: upgrade
     config_generator_action: upgrade
-
-# 17.1 OSP containers on RHEL8
+    config_generator_role_overrides:
+      ComputeHCILeaf1:
+        roleName: ComputeHCILeaf1Rhel8
+        hostIndexMap:
+          0: true
+          1: true
 
 - name: Upgrade overcloud deployment
   import_playbook: osp_deployment.yaml
@@ -64,20 +71,29 @@
     deploy_name: upgrade
     deploy_mode: upgrade
 
+# Controllers to RHEL9, Computes stay on RHEL8
 - name: Generate system upgrade custom config
   import_playbook: osp_custom_config.yaml
   vars:
     config_generator_name: system-upgrade
     custom_config_name: system-upgrade
     custom_config_action: system-upgrade
-    custom_config_extrafeatures: [ "system_upgrade" ]
+    custom_config_extrafeatures: [ "system_upgrade", "disable_compute_service_check", "negative_hypervisor_version_weight" ]
+    custom_config_rhel8_roles: "{{ compute_roles | map('regex_replace', '$', 'Rhel8') | list }}"
 
 - name: Controller system upgrade config generate
   import_playbook: config_generator.yaml
   vars:
     custom_config_name: system-upgrade
     config_generator_name: system-upgrade
-    custom_config_action: system-upgrade
+    config_generator_action: system-upgrade
+    config_generator_role_overrides:
+      ComputeHCILeaf1:
+        roleName: ComputeHCILeaf1Rhel8
+        hostIndexMap:
+          0: true
+          1: true
+
 
 - name: System upgrade controller-0
   import_playbook: osp_deployment.yaml
@@ -114,7 +130,56 @@
       tags:
         - system_upgrade
 
+- hosts: localhost
+  vars_files: vars/default.yaml
+  roles:
+  - oc_local
+  tasks:
+  - name: Re-enable fencing
+    command:
+      cmd: oc exec -t -n openstack openstackclient -- /bin/bash -c "ansible -i ~/ctlplane-ansible-inventory --become -m shell -a 'pcs property set stonith-enabled=true' {{controller_role}}[0]"
+    when: enable_fencing|bool
+    environment:
+      <<: *oc_env
+
+# Computes to RHEL9
+
+# Multi-rhel, just upgrade one
+- name: Compute0 system upgrade config generate
+  import_playbook: config_generator.yaml
+  vars:
+    custom_config_name: system-upgrade
+    config_generator_name: system-upgrade
+    config_generator_action: system-upgrade
+    config_generator_role_overrides:
+      "{{ compute_roles[0] }}":
+        roleName: "{{ compute_roles[0] }}Rhel8"
+        hostIndexMap:
+          0: true
+
+- name: System upgrade Compute0
+  import_playbook: osp_deployment.yaml
+  vars:
+    config_generator_name: system-upgrade
+    deploy_name: system-upgrade-compute-0
+    deploy_mode: upgrade
+    deploy_advanced_settings:
+      limit: "nova_libvirt[0]"
+      tags:
+        - system_upgrade
+
+- name: Upgrade compute0 containers
+  import_playbook: osp_deployment.yaml
+  vars:
+    config_generator_name: system-upgrade
+    deploy_name: container-upgrade-compute-0
+    deploy_mode: upgrade
+    deploy_advanced_settings:
+      limit: "nova_libvirt[0]"
+
+# All at once...
 - name: System upgrade all computes
+  when: false
   import_playbook: osp_deployment.yaml
   vars:
     config_generator_name: system-upgrade
@@ -126,6 +191,7 @@
         - system_upgrade
 
 - name: Upgrade compute containers
+  when: false
   import_playbook: osp_deployment.yaml
   vars:
     config_generator_name: system-upgrade
@@ -133,6 +199,9 @@
     deploy_mode: upgrade
     deploy_advanced_settings:
       limit: "nova_libvirt"
+
+# TODO:
+# pretty sure we need a final deployment to update the controller container images, enable fencing, and remove the FFU config stuff
 
 # TODOs:
 # - debug why LVM backed cinder-volume did not come up after Leapp for single node controller
