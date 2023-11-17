@@ -1,0 +1,2 @@
+openstackclient_image: registry-proxy.engineering.redhat.com/rh-osbs/rhosp17-openstack-tripleoclient:17.1.1-7.1700233531
+openstackclient_image_rhel8: registry-proxy.engineering.redhat.com/rh-osbs/rhosp17-openstack-tripleoclient:17.1.1-8.1700233463
