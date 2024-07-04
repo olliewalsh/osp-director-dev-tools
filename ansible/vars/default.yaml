@@ -603,6 +603,7 @@ rhel_packages:
   - python3.11-pip
   - qemu-kvm
   - virt-install
+  - python3-jmespath
 
   # required to customize the guest-image to remove net.ifnames=0 kernel param
   - libguestfs-tools-c
