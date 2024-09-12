@@ -40,8 +40,8 @@ podman_insecure_registries:
 
 # To set a specific release to install.
 # TODO: support "latest"/"stable" e.g https://mirror.openshift.com/pub/openshift-v4/clients/ocp/stable-4.14/
-ocp_version: "4.14"
-ocp_minor_version: 19
+ocp_version: "4.16"
+ocp_minor_version: 10
 ocp_release_image: "quay.io/openshift-release-dev/ocp-release:{{ ocp_version }}.{{ ocp_minor_version }}-x86_64"
 ocp_release_data_url: "https://mirror.openshift.com/pub/openshift-v4/clients/ocp/{{ ocp_version }}.{{ ocp_minor_version }}/release.txt"
 ocp_release_type: ga
@@ -243,10 +243,10 @@ watch_namespace: openstack,openshift-machine-api,openshift-sriov-network-operato
 # osp-director-operator image and tag to use
 director_operator_image: quay.io/openstack-k8s-operators/osp-director-operator
 # CSV version is used for both the CSV version and container image tag
-csv_version: latest-16.2
+csv_version: latest-17.1
 
-#ocp_network_type: OVNKubernetes
-ocp_network_type: OpenShiftSDN
+ocp_network_type: OVNKubernetes
+#ocp_network_type: OpenShiftSDN
 
 # ansible-sts test suite repo url
 sts_repo_url: https://code.engineering.redhat.com/gerrit/openstack-pidone-qe
