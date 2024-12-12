@@ -150,11 +150,11 @@
 
   - name: creat git_url
     set_fact:
-      git_url: "ssh://{{ git.user }}@{{ ansible_default_ipv4.address }}{{ ':' + git.port if git.port != '22' else '' }}/home/{{ git.user }}/playbooks.git"
+      git_url: "https://gitlab.cee.redhat.com/owalsh/ospdotest.git"
 
   - name: create secret for git ssh key
     shell: |
-      oc create secret generic git-secret -n openstack --from-file=git_ssh_identity={{ working_dir }}/git_id_rsa --from-literal=git_url={{ git_url }}
+      oc create secret generic git-secret -n openstack --from-literal=git_url="{{ git_url }}" --from-literal=git_api_key="THISISASECRET"
     environment:
       <<: *oc_env
     when: git_secret_exist_switch.stdout | length == 0
