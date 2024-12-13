@@ -18,7 +18,39 @@
     <<: *oc_env
   register: datavolume_switch
 
-# TODO: https://github.com/kubevirt/kubevirt/blob/ccfa60a99b92b7c960d0c616375e00cfa66162ba/docs/localstorage-disks.md
+# https://github.com/kubevirt/kubevirt/blob/ccfa60a99b92b7c960d0c616375e00cfa66162ba/docs/localstorage-disks.md
+- name: Create pod to bind hpp datavolume
+  when:
+    - datavolume_switch.rc == 1
+    - osp.base_image_storage_class is defined and osp.base_image_storage_class == "hpp-storageclass"
+  environment:
+    <<: *oc_env
+  block:
+    - shell: |
+      RANDOM_WORKER=$(oc get node -l node-role.kubernetes.io/worker -o=custom-columns=NAME:.metadata.name --no-headers | shuf -n 1)
+
+      cat <<EOF | oc create -n {{ namespace }} -f -
+      apiVersion: v1
+      kind: Pod
+      metadata:
+        name: consumer-{{ _datavolume }}
+      spec:
+        volumes:
+          - name: pod1-storage
+            persistentVolumeClaim:
+              claimName: {{ _datavolume }}
+        containers:
+        - name: test-pod-container
+          image: busybox
+          command: ['sh', '-c', 'echo "Will bind the pvc!" ']
+          volumeMounts:
+            - mountPath: /disk
+              name: pod1-storage
+        nodeSelector:
+          kubernetes.io/hostname: $RANDOM_WORKER
+      EOF
+
+
 - name: Deploy the datavolume {{ _datavolume }}
   when: datavolume_switch.rc == 1
   environment:
@@ -26,7 +58,8 @@
   block:
     - name: Upload OSP Controller base image
       shell: |
-        virtctl image-upload dv {{ _datavolume }} -n {{ namespace }} --size={{ osp.vmset[_role].root_disk.disk_size }}G --image-path={{ osp_base_image_url_path }} --insecure --access-mode ReadWriteOnce
+        virtctl image-upload dv {{ _datavolume }} -n {{ namespace }} --size={{ osp.vmset[_role].root_disk.disk_size }}G --image-path={{ osp_base_image_url_path }} --insecure --access-mode ReadWriteOnce \
+          {% if osp.base_image_storage_class is defined %}--storage-class {{ osp.base_image_storage_class }}{% endif %}
   rescue:
     - name: Remove datavolume {{ _datavolume }} from failed upload
       command: oc delete datavolume {{ _datavolume }} -n {{ namespace }} --ignore-not-found=true
@@ -38,7 +71,8 @@
 
     - name: Re-Upload base image {{ _datavolume }}
       shell: |
-        virtctl image-upload dv {{ _datavolume }} -n {{ namespace }} --size={{ osp.vmset[_role].root_disk.disk_size }}G --image-path={{ osp_base_image_url_path }} --insecure --access-mode ReadWriteOnce
+        virtctl image-upload dv {{ _datavolume }} -n {{ namespace }} --size={{ osp.vmset[_role].root_disk.disk_size }}G --image-path={{ osp_base_image_url_path }} --insecure --access-mode ReadWriteOnce \
+          {% if osp.base_image_storage_class is defined %}--storage-class {{ osp.base_image_storage_class }}{% endif %}
 
 - name: Wait for the PVC {{ _datavolume }} to be ready
   retries: "{{ (default_timeout / 5)|int }}"
@@ -52,3 +86,9 @@
     fi
   environment:
     <<: *oc_env
+
+- name: Cleanup hpp datavolume bind pod
+  environment:
+    <<: *oc_env
+  shell: |
+    oc delete pod consumer-{{ _datavolume }} -n {{ namespace }} --ignore-not-found=true
