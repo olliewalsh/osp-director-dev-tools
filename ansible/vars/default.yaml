@@ -259,6 +259,9 @@ sts_repo_url: https://code.engineering.redhat.com/gerrit/openstack-pidone-qe
 # image used to run tempest
 tempest_image: "{{ osp_release_auto.namespace }}/{{ osp_release_auto.name_prefix }}tempest:{{ osp_defaults.container_tag }}"
 
+# tempest storage class
+tempest_storage_class: "{{ openstackclient_storage_class }}"
+
 # tempest timeout in seconds
 tempest_timeout: 3600
 
