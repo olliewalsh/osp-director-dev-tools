@@ -20,13 +20,13 @@ osp_release_defaults:
         - storage_mgmt
       root_disk:
         disk_size: 40
-        storage_class: hpp-storage-class
+        storage_class: hpp-storageclass
         storage_access_mode: ReadWriteOnce
         storage_volume_mode: Filesystem
       additional_disks:
         - name: datadisk
           disk_size: 1
-          storage_class: hpp-storage-class
+          storage_class: hpp-storageclass
           storage_access_mode: ReadWriteOnce
           storage_volume_mode: Filesystem
 
@@ -38,5 +38,5 @@ ephemeral_heat:
 
 ocp_worker_disk: 150
 ocp_image_registry_ha: false
-ocp_image_registry_storage_class: hpp-storage-class
-openstackclient_storage_class: hpp-storage-class
+#ocp_image_registry_storage_class: hpp-storageclass
+openstackclient_storage_class: hpp-storageclass

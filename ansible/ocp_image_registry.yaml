@@ -34,14 +34,14 @@
       # Create PVC
       oc apply -f "{{ registry_yaml_dir }}/openshift-image-registry-pvc.yaml"
 
+      # set image registry to managed
+      oc patch configs.imageregistry.operator.openshift.io/cluster --type=merge \
+          --patch '{"spec":{"managementState":"Managed"}}'
+
       {% if not ocp_image_registry_ha|default(true) %}
       oc patch configs.imageregistry.operator.openshift.io/cluster --type merge \
           --patch '{"spec":{"rolloutStrategy":"Recreate","replicas":1}}'
       {% endif %}
-
-      # set image registry to managed
-      oc patch configs.imageregistry.operator.openshift.io/cluster --type=merge \
-          --patch '{"spec":{"managementState":"Managed"}}'
 
       # enable default route on image registry
       oc patch configs.imageregistry.operator.openshift.io/cluster --type=merge \
