@@ -35,6 +35,13 @@
     - subscription.yaml
     - deploy_operator.yaml
 
+  - name: Wait until the OpenShift cluster is stable
+    shell: |
+      oc adm wait-for-stable-cluster --minimum-stable-period=0.5m --timeout={{ (default_timeout * 10)|int }}s
+    environment:
+      PATH: "{{ oc_env_path }}"
+      KUBECONFIG: "{{ kubeconfig }}"
+
   - name: Create namespace, operatorgroup and subscription
     shell: |
       set -e

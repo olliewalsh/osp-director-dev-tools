@@ -28,8 +28,6 @@ help: ## Display this help.
 .PHONY: default
 default: \
   ocp_install \
-  nmstate_install \
-  cnv_install \
   sriov_install \
   olm \
   openstack
@@ -66,6 +64,7 @@ ocp_install: ## Deploy OpenShift env and run post targets which adds NICs for OS
 	$(MAKE) host_prep
 	$(MAKE) ocp_installer_prep
 	$(MAKE) ocp_installer
+	$(MAKE) cnv_install
 	$(MAKE) post_install
 	$(MAKE) nmstate_install
 
