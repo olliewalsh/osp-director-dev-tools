@@ -27,6 +27,7 @@
     <<: *oc_env
   block:
     - shell: |
+        oc delete pod consumer-{{ _datavolume }} -n {{ namespace }} --ignore-not-found=true
         RANDOM_WORKER=$(oc get node -l node-role.kubernetes.io/worker -o=custom-columns=NAME:.metadata.name --no-headers | shuf -n 1)
         cat <<EOF | oc create -n {{ namespace }} -f -
         apiVersion: v1
