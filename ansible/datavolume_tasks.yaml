@@ -58,7 +58,7 @@
     - name: Upload OSP Controller base image
       shell: |
         virtctl image-upload dv {{ _datavolume }} -n {{ namespace }} --size={{ osp.vmset[_role].root_disk.disk_size }}G --image-path={{ osp_base_image_url_path }} --insecure --access-mode ReadWriteOnce \
-          {% if osp.base_image_storage_class is defined %}--storage-class {{ osp.base_image_storage_class }}{% endif %}
+          {% if osp.base_image_storage_class is defined %}--storage-class {{ osp.base_image_storage_class }} {% if osp.base_image_storage_class == "hpp-storageclass" %}--force-bind{% endif %}{% endif %}
   rescue:
     - name: Remove datavolume {{ _datavolume }} from failed upload
       command: oc delete datavolume {{ _datavolume }} -n {{ namespace }} --ignore-not-found=true
@@ -71,7 +71,7 @@
     - name: Re-Upload base image {{ _datavolume }}
       shell: |
         virtctl image-upload dv {{ _datavolume }} -n {{ namespace }} --size={{ osp.vmset[_role].root_disk.disk_size }}G --image-path={{ osp_base_image_url_path }} --insecure --access-mode ReadWriteOnce \
-          {% if osp.base_image_storage_class is defined %}--storage-class {{ osp.base_image_storage_class }}{% endif %}
+          {% if osp.base_image_storage_class is defined %}--storage-class {{ osp.base_image_storage_class }} {% if osp.base_image_storage_class == "hpp-storageclass" %}--force-bind{% endif %}{% endif %}
 
 - name: Wait for the PVC {{ _datavolume }} to be ready
   retries: "{{ (default_timeout / 5)|int }}"
