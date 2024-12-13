@@ -75,6 +75,41 @@
         <<: *oc_env
 
 
+    ### HostPathProvisioner
+
+    - name: Set directory for storing HPP yaml files
+      set_fact:
+        ai_hpp_yaml_dir: "{{ working_yamls_dir }}/hpp"
+
+    - name: Create local yaml dir for HPP CRs
+      file:
+        path: "{{ hpp_yaml_dir }}"
+        state: directory
+        mode: '0755'
+
+    - name: Create HPP directory on OCP nodes # (hacky, but fast)
+      shell: >
+        {% raw %}
+        for worker in $(oc get nodes -o name); do
+          oc debug $worker -T -- chroot /host sh -c "mkdir -p /var/hpp"
+        done
+        {% endraw %}
+      environment:
+        PATH: "{{ oc_env_path }}"
+        KUBECONFIG: "{{ kubeconfig }}"
+
+    - name: Create HPP CR
+      template:
+        src: ai/hpp/hpp.yml.j2
+        dest: "{{ ai_hpp_yaml_dir }}/hpp.yml"
+        mode: '0664'
+
+    - name: Apply HPP CR
+      shell: |
+        oc apply -f {{ ai_hpp_yaml_dir }}/hpp.yml
+      environment:
+        <<: *oc_env
+
     ### OCS (if requested)
 
     - name: Install Local Storage and OCS

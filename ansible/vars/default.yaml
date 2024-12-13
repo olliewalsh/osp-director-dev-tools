@@ -38,6 +38,8 @@ base_domain_name: test.metalkube.org
 podman_insecure_registries:
   - default-route-openshift-image-registry.apps.{{ ocp_cluster_name }}.{{ base_domain_name }}
 
+
+
 # To set a specific release to install.
 # TODO: support "latest"/"stable" e.g https://mirror.openshift.com/pub/openshift-v4/clients/ocp/stable-4.14/
 ocp_version: "4.14"
@@ -75,6 +77,9 @@ ocp_ai: true
 # dev scripts switched to ipv6 per default, for now switch back
 # https://github.com/openshift-metal3/dev-scripts/pull/969
 ocp_ip_stack: v4
+
+ocp_image_registry_ha: true
+#ocp_image_registry_storage_class: hpp-storage-class
 
 #
 # BEGIN - VM node configuration

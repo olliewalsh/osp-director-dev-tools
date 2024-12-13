@@ -22,9 +22,9 @@
       mode: '0755'
 
   - name: Copy PVC to working dir
-    copy:
-      src: openshift-image-registry-pvc.yaml
-      dest: "{{ registry_yaml_dir }}/"
+    template:
+      src: openshift-image-registry-pvc.yaml.j2
+      dest: "{{ registry_yaml_dir }}/openshift-image-registry-pvc.yaml"
       mode: '0644'
 
   - name: Configure image registry # noqa var-spacing
@@ -33,6 +33,11 @@
 
       # Create PVC
       oc apply -f "{{ registry_yaml_dir }}/openshift-image-registry-pvc.yaml"
+
+      {% if not ocp_image_registry_ha|default(true) %}
+      oc patch configs.imageregistry.operator.openshift.io/cluster --type merge \
+          --patch '{"spec":{"rolloutStrategy":"Recreate","replicas":1}}'
+      {% endif %}
 
       # set image registry to managed
       oc patch configs.imageregistry.operator.openshift.io/cluster --type=merge \
