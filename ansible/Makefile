@@ -64,8 +64,9 @@ ocp_install: ## Deploy OpenShift env and run post targets which adds NICs for OS
 	$(MAKE) host_prep
 	$(MAKE) ocp_installer_prep
 	$(MAKE) ocp_installer
-	$(MAKE) cnv_install
 	$(MAKE) post_install
+	$(MAKE) cnv_install
+	$(MAKE) image_registry
 	$(MAKE) nmstate_install
 
 host_prep: hosts local-deps local-defaults.yaml
@@ -93,11 +94,17 @@ post_install: hosts local-defaults.yaml
 	-e @local-defaults.yaml \
 	local_oc_client.yaml \
 	ocp_ai_post_install.yaml \
-	ocp_default_storageclass.yaml \
-	ocp_image_registry.yaml
+	ocp_default_storageclass.yaml
 	$(MAKE) custom_registries
 	$(MAKE) nics
 	$(MAKE) freeipa
+
+image_registry: hosts local-defaults.yaml
+	ANSIBLE_FORCE_COLOR=true ansible-playbook \
+	-i hosts \
+	-e @vars/${OSP_RELEASE}.yaml \
+	-e @local-defaults.yaml \
+	ocp_image_registry.yaml
 
 custom_registries: hosts local-defaults.yaml
 	ANSIBLE_FORCE_COLOR=true ansible-playbook \
