@@ -35,7 +35,7 @@
     deploy_name: update-compute
     deploy_mode: update
     deploy_advanced_settings:
-      limit: nova_compute
+      limit: Compute-A1
 
 - name: Update Ceph deployment
   import_playbook: osp_deployment.yaml

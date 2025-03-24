@@ -188,7 +188,7 @@
     - OS::TripleO::Services::Tuned
     - OS::TripleO::Services::Unbound
     - OS::TripleO::Services::Vpp
-{% for rolesuffix in (("", "Rhel8") if custom_config_rhel8_roles|default(False) else ("",)) %}
+{% for rolesuffix in (("-A1", "Rhel8") if custom_config_rhel8_roles|default(False) else ("-A1",)) %}
 ###############################################################################
 # Role: Compute{{rolesuffix}}                                                 #
 ###############################################################################
