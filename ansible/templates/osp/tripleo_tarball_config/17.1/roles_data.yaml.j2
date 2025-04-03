@@ -210,6 +210,11 @@
   RoleParametersDefault:
     FsAioMaxNumber: 1048576
     TunedProfileName: "virtual-host"
+{% if "OSPRH-14996" in osp.extrafeatures %}
+    KernelArgs: "default_hugepagesz=1GB intel_iommu=on iommu=pt"
+    ExtraKernelModules:
+      vfio: {}
+{% endif %}
   # Deprecated & backward-compatible values (FIXME: Make parameters consistent)
   # Set uses_deprecated_params to True if any deprecated params are used.
   # These deprecated_params only need to be used for existing roles and not for
@@ -222,7 +227,11 @@
   deprecated_param_ips: 'NovaComputeIPs'
   deprecated_server_resource_name: 'NovaCompute'
   deprecated_nic_config_name: 'compute.yaml'
+{% if "OSPRH-14996" in osp.extrafeatures %}
+  update_serial: 1
+{% else %}
   update_serial: 25
+{% endif %}
   ServicesDefault:
     - OS::TripleO::Services::Aide
     - OS::TripleO::Services::AuditD
@@ -297,6 +306,11 @@
   RoleParametersDefault:
     FsAioMaxNumber: 1048576
     TunedProfileName: "virtual-host"
+{% if "OSPRH-14996" in osp.extrafeatures %}
+    KernelArgs: "default_hugepagesz=1GB intel_iommu=on iommu=pt"
+    ExtraKernelModules:
+      vfio: {}
+{% endif %}
   # Deprecated & backward-compatible values (FIXME: Make parameters consistent)
   # Set uses_deprecated_params to True if any deprecated params are used.
   # These deprecated_params only need to be used for existing roles and not for
@@ -309,7 +323,11 @@
   deprecated_param_ips: 'NovaComputeIPs'
   deprecated_server_resource_name: 'NovaCompute'
   deprecated_nic_config_name: 'compute.yaml'
+{% if "OSPRH-14996" in osp.extrafeatures %}
+  update_serial: 1
+{% else %}
   update_serial: 25
+{% endif %}
   ServicesDefault:
     - OS::TripleO::Services::Aide
     - OS::TripleO::Services::AuditD
@@ -384,6 +402,11 @@
   RoleParametersDefault:
     FsAioMaxNumber: 1048576
     TunedProfileName: "virtual-host"
+{% if "OSPRH-14996" in osp.extrafeatures %}
+    KernelArgs: "default_hugepagesz=1GB intel_iommu=on iommu=pt"
+    ExtraKernelModules:
+      vfio: {}
+{% endif %}
   # Deprecated & backward-compatible values (FIXME: Make parameters consistent)
   # Set uses_deprecated_params to True if any deprecated params are used.
   # These deprecated_params only need to be used for existing roles and not for
@@ -396,7 +419,11 @@
   deprecated_param_ips: 'NovaComputeIPs'
   deprecated_server_resource_name: 'NovaCompute'
   deprecated_nic_config_name: 'compute.yaml'
+{% if "OSPRH-14996" in osp.extrafeatures %}
+  update_serial: 1
+{% else %}
   update_serial: 25
+{% endif %}
   ServicesDefault:
     - OS::TripleO::Services::Aide
     - OS::TripleO::Services::AuditD
@@ -967,7 +994,16 @@
     TunedProfileName: "cpu-partitioning"
     NovaLibvirtRxQueueSize: 1024
     NovaLibvirtTxQueueSize: 1024
+{% if "OSPRH-14996" in osp.extrafeatures %}
+    KernelArgs: "default_hugepagesz=1GB intel_iommu=on iommu=pt"
+    ExtraKernelModules:
+      vfio: {}
+{% endif %}
+{% if "OSPRH-14996" in osp.extrafeatures %}
+  update_serial: 1
+{% else %}
   update_serial: 25
+{% endif %}
   ServicesDefault:
     - OS::TripleO::Services::Aide
     - OS::TripleO::Services::AuditD
@@ -1038,7 +1074,16 @@
   RoleParametersDefault:
     FsAioMaxNumber: 1048576
     TunedProfileName: "cpu-partitioning"
+{% if "OSPRH-14996" in osp.extrafeatures %}
+    KernelArgs: "default_hugepagesz=1GB intel_iommu=on iommu=pt"
+    ExtraKernelModules:
+      vfio: {}
+{% endif %}
+{% if "OSPRH-14996" in osp.extrafeatures %}
+  update_serial: 1
+{% else %}
   update_serial: 25
+{% endif %}
   ServicesDefault:
     - OS::TripleO::Services::Aide
     - OS::TripleO::Services::AuditD
@@ -1269,7 +1314,17 @@
     Storage:
       subnet: storage_subnet
   HostnameFormatDefault: '%stackname%-novacontrol-%index%'
+{% if "OSPRH-14996" in osp.extrafeatures %}
+  RoleParametersDefault:
+    KernelArgs: "default_hugepagesz=1GB intel_iommu=on iommu=pt"
+    ExtraKernelModules:
+      vfio: {}
+{% endif %}
+{% if "OSPRH-14996" in osp.extrafeatures %}
+  update_serial: 1
+{% else %}
   update_serial: 25
+{% endif %}
   ServicesDefault:
     - OS::TripleO::Services::AuditD
     - OS::TripleO::Services::BootParams
