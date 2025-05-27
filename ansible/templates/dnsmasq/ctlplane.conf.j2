@@ -9,6 +9,16 @@ no-hosts
 server={{ dns_server }}
 {% if osp.tlse|default(false)|bool %}
 server=/{{ base_domain_name }}/10.99.0.2 # Forward to FreeIPA
+{% for id, net in osp_networks.items() %}
+{% for subnet in net.subnets %}
+{% if subnet.ipv4 is defined %}
+rev-server={{ subnet.ipv4.cidr }},10.99.0.2 # Forward to FreeIPA
+{% endif %}
+{% if subnet.ipv6 is defined %}
+rev-server={{ subnet.ipv6.cidr }},10.99.0.2 # Forward to FreeIPA
+{% endif %}
+{% endfor %}
+{% endfor %}
 {% endif %}
 {% endfor %}
 
