@@ -15,6 +15,26 @@
         controller_role: "{{ osp.vmset | dict2items | selectattr('value.count', '>', 0) | list | items2dict | first }}"
         compute_roles: "{{ osp.bmset | dict2items | selectattr('value.count', '>', 0) | list | items2dict | list }}"
 
+  # Role overrides for computes
+  # Generates e.g:
+  # config_generator_role_overrides_all_computes:
+  #   ComputeHCILeaf1:
+  #     roleName: ComputeHCILeaf1Rhel8
+  #     hostIndexMap:
+  #       0: true
+  #       1: true
+
+    - name: Set tripleo role override for all computes in all roles
+      ansible.builtin.set_fact:
+        config_generator_role_overrides_all_computes: "{{
+          lookup('ansible.builtin.template',
+                 './templates/osp/config_generator/multirhel_role_override.yaml.j2',
+                 template_vars={'role': item,
+                                'start': start | default(0),
+                                'end': end | default(osp.bmset[item].count)}) | from_yaml
+          }}"
+      loop: "{{ compute_roles }}"
+
     - name: Upgrade openstackcontrolplane release
       environment:
         PATH: "{{ oc_env_path }}"
@@ -49,7 +69,7 @@
     custom_config_name: upgrade
     custom_config_action: upgrade
     custom_config_extrafeatures: ["upgrade", "disable_compute_service_check"]
-    custom_config_libvirt_legacy: true
+    custom_config_rhel8_roles: "{{ compute_roles | map('regex_replace', '$', 'Rhel8') | list + [controller_role] }}"
 
 - name: Upgrade Prepare config generate
   import_playbook: config_generator.yaml
@@ -57,6 +77,7 @@
     custom_config_name: upgrade
     config_generator_name: upgrade
     config_generator_action: upgrade
+    config_generator_role_overrides: "{{config_generator_role_overrides_all_computes}}"
 
 - name: Upgrade overcloud deployment
   import_playbook: osp_deployment.yaml
