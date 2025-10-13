@@ -1,0 +1,78 @@
+---
+
+# Rotate passwords:
+# oc get secret -n openstack tripleo-passwords -o jsonpath='{.data.tripleo-overcloud-passwords\.yaml}' | base64 -d > tripleo-overcloud-passwords-new.yaml
+# Remove everything except CephClientKey CephClusterFSID CephManilaClientKey CephRgwKey SwiftHashSuffix
+# oc -n openstack create secret generic tripleo-passwords --save-config --dry-run=client --from-file=tripleo-overcloud-passwords.yaml=./tripleo-overcloud-passwords-orig.yaml -o yaml | oc apply -f -
+# Wait for password secret to update with missing fields...
+#
+# Get passwords and manually rotate those that need special handling
+
+- name: Generate redeploy custom config
+  import_playbook: osp_custom_config.yaml
+  vars:
+    custom_config_name: central
+    custom_config_action: redeploy
+    custom_config_ceph_cluster_name: central
+    custom_config_extrafeatures: ["dmbs_store_dcn1"]
+    custom_config_imports:
+      - deploy: dcn1
+        src: ceph-export.yaml
+        dest: ceph-export-dcn1.yaml
+
+- name: Config generate
+  import_playbook: config_generator.yaml
+  vars:
+    custom_config_name: central
+    config_generator_name: pwrotate-central
+    config_generator_roles:
+      - Controller
+      - ComputeHCI
+
+- name: Overcloud node repo setup
+  import_playbook: osp_register_overcloud_nodes.yaml
+  vars:
+    config_generator_roles:
+      - Controller
+      - ComputeHCI
+
+- name: Overcloud redeployment
+  import_playbook: osp_deployment.yaml
+  vars:
+    config_generator_name: pwrotate-central
+    deploy_name: pwrotate-central
+
+- name: Generate deploy custom config
+  import_playbook: osp_custom_config.yaml
+  vars:
+    custom_config_name: dcn1
+    custom_config_ceph_cluster_name: dcn1
+    custom_config_dmbs_remote_site: "{{ 'dmbs' in osp.extrafeatures }}"
+    custom_config_imports:
+      - deploy: pwrotate-central
+        src: ctlplane-export.yaml
+        dest: ctlplane-export-central.yaml
+      - deploy: pwrotate-central
+        src: ceph-export.yaml
+        dest: ceph-export-central.yaml
+
+- name: Config generate
+  import_playbook: config_generator.yaml
+  vars:
+    custom_config_name: dcn1
+    config_generator_name: pwrotate-dcn1
+    custom_config_dmbs_remote_site: "{{ 'dmbs' in osp.extrafeatures }}"
+    config_generator_roles:
+      - DistComputeHCILeaf1
+
+- name: Overcloud node repo setup
+  import_playbook: osp_register_overcloud_nodes.yaml
+  vars:
+    config_generator_roles:
+      - DistComputeHCILeaf1
+
+- name: Overcloud deployment
+  import_playbook: osp_deployment.yaml
+  vars:
+    config_generator_name: pwrotate-dcn1
+    deploy_name: pwrotate-dcn1
