@@ -70,8 +70,9 @@ osp_extra_env_files:
   - services/barbican.yaml
   - services/manila.yaml
   - services/heat-engine.yaml
-  - cephadm/ceph-dashboard.yaml
   - services/octavia.yaml
+  - cephadm/ceph-dashboard.yaml
+  - cephadm/ceph-mds.yaml
 
 
 tempest_test_dict:
